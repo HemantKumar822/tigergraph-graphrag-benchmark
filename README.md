@@ -12,7 +12,7 @@ LLMs are expensive because they're fed too much context. Basic RAG retrieves *si
 
 **Graphs solve this.** TigerGraph performs multi-hop entity traversal and hands the LLM a clean, precise subgraph instead of a context dump.
 
-This platform runs **three pipelines in parallel** against an identical 2M+ token dataset (SEC 10-K filings) and lets the numbers speak:
+This platform runs **three pipelines in parallel** against an identical 2M+ token dataset (Highly structured tech Wikipedia documents spanning AI, Datasets, Cloud, and Software Engineering) and lets the numbers speak:
 
 | Pipeline | Strategy | Expected Outcome |
 |---|---|---|
