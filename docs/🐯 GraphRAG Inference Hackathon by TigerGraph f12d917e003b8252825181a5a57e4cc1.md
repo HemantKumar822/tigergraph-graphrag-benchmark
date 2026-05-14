@@ -103,7 +103,7 @@ For Pipeline 3, you have **two valid paths** to choose from:
 
 > Both paths are valid. We judge on outcomes (the % improvement and answer accuracy), not on which path you took.
 > 
-
+`
 Your **comparison dashboard** is the heart of your project. It's an interactive page where you enter **one query** and it runs that same query through all 3 pipelines at once: LLM-Only, Basic RAG, and GraphRAG. The dashboard then displays each pipeline's response side-by-side, along with these metrics for every pipeline:
 
 - **Tokens used:** prompt + completion tokens per query, the headline metric for cost reduction

@@ -1,0 +1,18 @@
+[
+  {
+    "query": "What is TigerGraph?",
+    "ground_truth": "TigerGraph is a native distributed graph database designed for advanced analytics and machine learning on connected data."
+  },
+  {
+    "query": "How does GraphRAG improve over standard RAG?",
+    "ground_truth": "GraphRAG improves over standard RAG by combining knowledge graphs with large language models, allowing for multi-hop reasoning, better context retrieval across interconnected documents, and deeper contextual insights."
+  },
+  {
+    "query": "What is ChromaDB?",
+    "ground_truth": "ChromaDB is an open-source vector database designed specifically for AI applications to store and query vector embeddings."
+  },
+  {
+    "query": "What does semantic search use instead of exact keyword matches?",
+    "ground_truth": "Semantic search uses vector embeddings to find documents with similar meanings rather than relying on exact keyword matches."
+  }
+]

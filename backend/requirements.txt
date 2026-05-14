@@ -1,0 +1,17 @@
+fastapi
+uvicorn
+pydantic-settings
+python-dotenv
+httpx
+pyTigerGraph
+google-generativeai>=0.8.6
+tiktoken
+chromadb
+rich
+torch
+transformers
+bert-score
+python-multipart
+tokenizers==0.22.2
+protobuf>=3.20.2,<6.0.0
+pypdf==6.11.0

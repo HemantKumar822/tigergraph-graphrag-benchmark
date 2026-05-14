@@ -17,6 +17,7 @@ htmlcov/
 .env
 *.env
 
+
 # Node.js Ecosystem (Frontend)
 node_modules/
 .next/
@@ -35,6 +36,7 @@ yarn-error.log*
 # Local Database & User Data
 **/data/chroma_db/
 **/data/raw_uploads/
+graphrag/configs/server_config.json
 *.pdf
 
 # IDE Configs
@@ -46,3 +48,6 @@ yarn-error.log*
 .DS_Store
 Thumbs.db
 desktop.ini
+scratch
+backend/data/chroma_db/
+backend/data/raw_uploads/

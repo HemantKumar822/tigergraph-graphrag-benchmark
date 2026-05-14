@@ -112,7 +112,7 @@ venv\Scripts\activate
 source venv/bin/activate
 
 pip install -r requirements.txt
-uvicorn main:app --reload --port 8000
+uvicorn main:app --reload --port 8080
 ```
 
 ### 3. Frontend Setup (Next.js)
@@ -121,16 +121,16 @@ uvicorn main:app --reload --port 8000
 cd frontend
 npm install
 npm run dev
-# → http://localhost:3000
+# → http://localhost:3001
 ```
 
 ### 4. Or use Docker Compose (Recommended)
 
 ```bash
 docker-compose up --build
-# Frontend: http://localhost:3000
-# Backend:  http://localhost:8000
-# API Docs: http://localhost:8000/docs
+# Frontend: http://localhost:3001
+# Backend:  http://localhost:8080
+# API Docs: http://localhost:8080/docs
 ```
 
 ---
@@ -175,29 +175,51 @@ tigergraph-graphrag-benchmark/
 
 ## ⚙️ Environment Variables
 
-Create `backend/.env` from the template:
+Create `backend/.env` from `backend/.env.example`.
 
 ```env
-# LLM Provider
+# LLM provider used by our benchmark backend
 GEMINI_API_KEY=your_gemini_api_key_here
-# OR
-OPENAI_API_KEY=your_openai_api_key_here
+GRAPHRAG_LLM_PROVIDER=gemini
 
-# TigerGraph Connection
-TG_HOST=your_savanna_endpoint
-TG_USERNAME=tigergraph
-TG_PASSWORD=your_password
-TG_GRAPH_NAME=GraphRAGBenchmark
+# Savanna workspace connection for our backend
+TG_HOSTNAME=https://your-workspace.i.tgcloud.io
+TG_GRAPH=GraphRAGBenchmark
+TG_AUTH_MODE=token
+TG_API_TOKEN=your_savanna_api_token
+TG_USE_CLOUD=true
+TG_SSL_PORT=14240
 
-# ChromaDB
+# Optional fallback if you are using username/password instead
+# TG_AUTH_MODE=password
+# TG_USERNAME=your_username
+# TG_PASSWORD=your_password
+
+# Optional official TigerGraph GraphRAG service
+GRAPHRAG_SERVICE_ENABLED=false
+GRAPHRAG_SERVICE_URL=http://localhost:8000
+GRAPHRAG_SERVICE_GRAPH=GraphRAGBenchmark
+GRAPHRAG_SERVICE_AUTH_MODE=basic
+GRAPHRAG_SERVICE_USERNAME=your_username
+GRAPHRAG_SERVICE_PASSWORD=your_password
+
+# Local storage
 CHROMA_PERSIST_PATH=./data/chroma_db
-
-# Pipeline Config Defaults
 DEFAULT_TOP_K=5
 DEFAULT_NUM_HOPS=2
-DEFAULT_COMMUNITY_LEVEL=1
-LLM_TEMPERATURE=0.0
-LLM_SEED=42
+BACKEND_PORT=8080
+```
+
+For Savanna, the cleanest path is:
+
+1. Use a read-write workspace for ingestion.
+2. Use the workspace endpoint as `TG_HOSTNAME`.
+3. Prefer a Savanna API token with `TG_AUTH_MODE=token`.
+4. Generate the official GraphRAG config from the same env instead of hand-editing secrets.
+
+```bash
+python backend/scripts/render_graphrag_config.py --check
+python backend/scripts/render_graphrag_config.py
 ```
 
 ---
@@ -207,9 +229,23 @@ LLM_SEED=42
 ### Interactive Dashboard
 
 1. Start both services (see Quick Start above)
-2. Open `http://localhost:3000`
+2. Open `http://localhost:3001`
 3. Enter a complex, multi-hop query against the SEC 10-K dataset
 4. Watch all 3 pipelines execute in parallel — results populate independently as each completes
+
+### Pipeline Validation
+
+Check readiness without spending tokens:
+
+```bash
+python backend/scripts/validate_pipelines.py --mode readiness
+```
+
+Run a live smoke test for all three pipelines:
+
+```bash
+python backend/scripts/validate_pipelines.py --mode live
+```
 
 ### Headless Batch Evaluation (CLI)
 
@@ -252,7 +288,7 @@ All endpoints follow the standardized response envelope:
 | `POST /api/orchestrator/benchmark` | POST | All 3 pipelines in parallel |
 | `POST /api/ingest` | POST | Upload custom documents |
 
-Interactive API docs: `http://localhost:8000/docs`
+Interactive API docs: `http://localhost:8080/docs`
 
 ---
 
