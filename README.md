@@ -124,7 +124,7 @@ npm run dev
 # → http://localhost:3001
 ```
 
-### 4. Or use Docker Compose (Recommended)
+### 4. Or use Docker Compose (Not Available now)
 
 ```bash
 docker-compose up --build
@@ -249,20 +249,20 @@ python backend/scripts/validate_pipelines.py --mode live
 
 ### Headless Batch Evaluation (CLI)
 
-Run the full 50-question benchmark suite without touching the UI:
+Run the benchmark suite natively through the terminal without touching the UI:
 
 ```bash
 cd backend
-python evaluate.py data/sample_questions.json
+python scripts/evaluate.py data/sample_questions.json
 
 # Output:
-# ┌──────────────┬──────────┬──────────────┬───────────┬────────────────┐
-# │ Pipeline     │ Questions│ Avg Latency  │ Pass Rate │ Total Tokens   │
-# ├──────────────┼──────────┼──────────────┼───────────┼────────────────┤
-# │ LLM-Only     │    50    │    8.2s      │   62%     │   185,000      │
-# │ Basic RAG    │    50    │    6.4s      │   78%     │   120,000      │
-# │ GraphRAG     │    50    │    7.1s      │   94%     │    38,000      │
-# └──────────────┴──────────┴──────────────┴───────────┴────────────────┘
+# ┏━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓
+# ┃ Pipeline        ┃ Total Questions ┃ Avg Latency (ms)┃ Pass Rate (%) ┃ Total Tokens   ┃
+# ┡━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━┩
+# │ LLM Only        │               5 │        17112.62 │        100.0% │           4172 │
+# │ Basic RAG       │               5 │        13183.40 │         80.0% │           8915 │
+# │ GraphRAG        │               5 │        17045.31 │        100.0% │           6698 │
+# └─────────────────┴─────────────────┴─────────────────┴───────────────┴────────────────┘
 ```
 
 ---
