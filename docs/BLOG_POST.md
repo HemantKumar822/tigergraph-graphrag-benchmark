@@ -16,9 +16,35 @@ Here is a breakdown of what we built, how we solved the token-bloat problem, and
 
 ## 🏗️ What We Built: The Ultimate Inference Benchmark
 
-We didn’t just build a GraphRAG demo; we built a **production-grade benchmarking orchestrator**. 
+We didn’t just build a GraphRAG demo; we built a **production-grade benchmarking orchestrator** and an **interactive comparison dashboard**. 
 
-Our application features an aesthetic Next.js React frontend that fires asynchronous requests to a Python FastAPI backend. The backend spins up three concurrent pipelines to answer the exact same question:
+### System Architecture Diagram
+To make it entirely transparent, we architected the system using a fan-out / fan-in concurrent orchestration model. Here is the visual layout of our tech stack:
+
+```mermaid
+graph TD;
+    User([User Query]) --> Frontend[Next.js Dashboard];
+    Frontend -->|HTTP POST parallel| FastApi[FastAPI Orchestrator];
+    FastApi -->|Pipeline 1| LLM[LLM-Only Gemini];
+    FastApi -->|Pipeline 2| Chroma[(ChromaDB Vector Store)];
+    FastApi -->|Pipeline 3| TG[(TigerGraph Knowledge Graph)];
+    
+    Chroma -->|Vector similarity| BasicRAG[Basic RAG Gen];
+    TG -->|Multi-hop traversal| GraphRAG[GraphRAG Gen];
+    
+    LLM --> Evaluator{Evaluation Engine};
+    BasicRAG --> Evaluator;
+    GraphRAG --> Evaluator;
+    
+    Evaluator -->|Gemini-as-a-Judge| PassFail[PASS/FAIL Score];
+    Evaluator -->|HuggingFace BERT| F1[BERTScore F1];
+    
+    PassFail --> Telemetry[Unified Analytics];
+    F1 --> Telemetry;
+    Telemetry -->|Tokens, Latency, Accuracy| Frontend;
+```
+
+Our application features an aesthetic Next.js React frontend (our Comparison Dashboard) that fires asynchronous requests to a Python FastAPI backend. The backend spins up three concurrent pipelines to answer the exact same question:
 
 1. **🧠 LLM-Only:** A raw query hitting Google’s Gemini 3.1 Flash-Lite model. Completely context-blind.
 2. **🔍 Basic RAG:** A standard cosine-similarity vector search running on a local ChromaDB instance.
@@ -60,8 +86,10 @@ After running our Headless Batch Evaluation CLI over a robust list of ML/AI quer
 ### 1. Token Reduction (The Cost Killer)
 GraphRAG successfully slashed the prompt token payload by **~25% to 30%** compared to Basic Vector RAG (from almost 9k tokens down to ~6.6k). By providing explicit evidence snippets mapped over `HAS_ENTITY` relationships, we proved that graphs drastically lower LLM inference costs.
 
-### 2. Answer Accuracy (Stopping Hallucinations)
-While Basic Vector RAG stumbled on multi-hop logical concepts (falling to an 80% pass rate), our GraphRAG pipeline achieved a flawless **100% Pass Rate** assessed by our LLM Judge, bringing perfect logical consistency to the answers.
+### 2. Answer Accuracy (The TigerGraph Hackathon Standard)
+The hackathon guidelines set a high bar for empirical accuracy validation, requiring both an **LLM-as-a-Judge** stringency test and a **Hugging Face BERTScore** semantic similarity check. 
+
+While Basic Vector RAG stumbled on multi-hop logical concepts (falling to an 80% pass rate), our GraphRAG pipeline achieved a flawless **100% Pass Rate** via the LLM Judge. We also achieved fantastic BERTScore F1 metric scaling, vastly out-performing the `0.55` target baseline set by the hackathon organizers by generating answers that correctly captured explicit entities avoiding hallucinated jargon.
 
 ### 3. Performance Overhead
 Yes, traversing a graph takes slightly more compute time than a naive vector lookup. Our Basic RAG averaged ~13.1s, while TigerGraph sat at ~17.0s. However, that marginal ~4-second latency cost pays for itself tenfold by guaranteeing factual accuracy and saving thousands of tokens per query.
@@ -74,4 +102,6 @@ The era of blindly dumping PDF text chunks into LLM context windows is ending.
 
 Through our TigerGraph-powered inference benchmark, we demonstrated that **structured relational knowledge mathematically out-performs flat semantic vectors** when evaluating complex domain data. GraphRAG gives Large Language Models exactly what they need—context, structure, and constraints—without the costly noise.
 
-*Check out our open-source codebase to run the three-way benchmark yourself!*
+### Try it Yourself
+- **Check out our open-source codebase** to run the three-way benchmark yourself natively via the CLI or via the Next.js visual Comparison Dashboard. 
+- **Watch the Demo Video:** We recorded a full 5-minute walkthrough showcasing the dashboard pulling concurrent live metrics across all three pipelines!
