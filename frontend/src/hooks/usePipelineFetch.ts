@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
 import { APIResponse } from '../types';
+import { getApiUrl } from '../utils/apiUrl';
 
 interface FetchParams {
   top_k: number;
   num_hops: number;
+  ground_truth?: string;
 }
 
 export function usePipelineFetch<T = unknown>(endpoint: string) {
@@ -29,8 +31,10 @@ export function usePipelineFetch<T = unknown>(endpoint: string) {
     setIsLoading(true);
     setError(null);
     setData(null);
+    
     try {
-      const response = await fetch(endpoint, {
+      const fullUrl = getApiUrl(endpoint);
+      const response = await fetch(fullUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -38,6 +42,7 @@ export function usePipelineFetch<T = unknown>(endpoint: string) {
         signal: abortControllerRef.current.signal,
         body: JSON.stringify({
           query,
+          ground_truth: params.ground_truth,
           config: {
             top_k: params.top_k,
             num_hops: params.num_hops,

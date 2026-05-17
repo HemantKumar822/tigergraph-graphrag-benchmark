@@ -1,18 +1,1 @@
-[
-  {
-    "query": "What is TigerGraph?",
-    "ground_truth": "TigerGraph is a native distributed graph database designed for advanced analytics and machine learning on connected data."
-  },
-  {
-    "query": "How does GraphRAG improve over standard RAG?",
-    "ground_truth": "GraphRAG improves over standard RAG by combining knowledge graphs with large language models, allowing for multi-hop reasoning, better context retrieval across interconnected documents, and deeper contextual insights."
-  },
-  {
-    "query": "What is ChromaDB?",
-    "ground_truth": "ChromaDB is an open-source vector database designed specifically for AI applications to store and query vector embeddings."
-  },
-  {
-    "query": "What does semantic search use instead of exact keyword matches?",
-    "ground_truth": "Semantic search uses vector embeddings to find documents with similar meanings rather than relying on exact keyword matches."
-  }
-]
+[{"query": "What is Retrieval-Augmented Generation (RAG)?", "ground_truth": "Retrieval-Augmented Generation (RAG) is a framework that improves LLM responses by retrieving relevant information from an external knowledge base before generating an answer, which reduces hallucinations."}, {"query": "How do Graph Neural Networks differ from Convolutional Neural Networks?", "ground_truth": "Graph Neural Networks (GNNs) operate on graph-structured data with nodes and edges to capture complex relationships, whereas Convolutional Neural Networks (CNNs) typically operate on regular grid-like structures such as images."}, {"query": "What are the limitations of the self-attention mechanism in standard Transformers?", "ground_truth": "The self-attention mechanism in standard Transformers has a quadratic computational complexity with respect to the input sequence length, making it highly memory and compute intensive for very long documents."}, {"query": "How does using an external knowledge graph improve the performance of large language models?", "ground_truth": "Knowledge graphs provide structured, multi-hop relational data that allow language models to anchor their reasoning in explicit structural facts, reducing hallucinations and improving multi-hop logical consistency."}, {"query": "What is the primary role of mathematical vector embeddings in semantic search databases?", "ground_truth": "Mathematical vector embeddings represent text as dense numerical vectors in a high-dimensional continuous space, allowing semantic search to find similar concepts by computing cosine similarity between these vectors rather than relying on exact keyword matches."}]

@@ -20,7 +20,7 @@ export default function SummaryComparison({ pipelines }: SummaryComparisonProps)
         completionTokens: metrics.completionTokens,
         bertScore: metrics.bertScore,
         judgeScore: metrics.judgeScore,
-        latency: metrics.latency,
+        latency: metrics.latencyMs || metrics.totalLatencyMs,
       };
     });
 
@@ -62,10 +62,12 @@ export default function SummaryComparison({ pipelines }: SummaryComparisonProps)
                   <div className="font-bold text-emerald-600">{result.bertScore.toFixed(3)}</div>
                 </div>
               )}
-              {result.judgeScore !== undefined && result.judgeScore !== null && (
+              {result.judgeScore !== undefined && result.judgeScore !== null && result.judgeScore !== 'N/A' && (
                 <div className="text-center">
                   <div className="text-[10px] text-gray-600 font-semibold">Judge</div>
-                  <div className="font-bold text-purple-600">{result.judgeScore.toFixed(1)}/10</div>
+                  <div className={`font-bold ${result.judgeScore === 'PASS' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    {result.judgeScore}
+                  </div>
                 </div>
               )}
               {!result.bertScore && !result.judgeScore && (

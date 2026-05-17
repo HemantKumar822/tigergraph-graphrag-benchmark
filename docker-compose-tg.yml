@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  tigergraph:
+    image: tigergraph/community:4.2.2
+    container_name: tigergraph
+    ports:
+      - "14240:14240"
+      - "9000:9000"
+      - "14241:14241"
+    volumes:
+      - ./tg_data:/home/tigergraph/mydata
+    ulimits:
+      nofile:
+        soft: 1000000
+        hard: 1000000

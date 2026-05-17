@@ -2,6 +2,8 @@ from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
+from contextlib import asynccontextmanager
+
 from app.models.schemas import APIResponse, APIError
 from app.api.routes import router as pipeline_router
 from app.api.orchestrator import orchestrator as orchestrator_router
@@ -9,13 +11,22 @@ from app.api.ingestion import router as ingestion_router
 from app.core.config import settings
 from app.core.logging_setup import setup_rich_logging
 import logging
+from app.evaluation.bertscore import preload_bert_model
 import uvicorn
 
 # Initialize structural terminal logging
 setup_rich_logging()
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="TigerGraph GraphRAG API")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Preload BERTScore at server startup to prevent API freeze
+    preload_bert_model()
+    yield
+    # Cleanup on shutdown (if any)
+    pass
+
+app = FastAPI(title="TigerGraph GraphRAG API", lifespan=lifespan)
 
 # Setup CORS
 app.add_middleware(

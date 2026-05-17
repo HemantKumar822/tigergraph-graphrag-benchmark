@@ -127,14 +127,69 @@ def _build_tg_connection() -> tg.TigerGraphConnection | None:
     return conn
 
 
-tg_conn = None
-try:
-    tg_conn = _build_tg_connection()
-    if tg_conn:
-        logger.info("TigerGraph connection initialized for %s", settings.TG_HOSTNAME)
-except Exception as conn_err:
-    logger.error("Failed to establish TigerGraph connection: %s", conn_err)
-    tg_conn = None
+class DynamicTGConnection:
+    """
+    Resilient, zero-downtime TigerGraph connection proxy.
+    Intercepts attribute access and dynamically rebuilds the underlying connection
+    if it is uninitialized, broken, or lacking valid API credentials.
+    Solves container cold-boot synchronization bugs when DB is sleeping.
+    """
+    def __init__(self):
+        self._conn = None
+        self._last_attempt = 0
+        self._cooldown = 5.0 # Don't spam reconnection attempts too fast if failing
+
+    def _ensure_conn(self):
+        import time
+        now = time.time()
+        
+        # 1. Valid cached connection check
+        if self._conn is not None:
+            # Return active connection ONLY if it actually possesses a resolved API Token.
+            # Lacking a token (e.g. from a failed boot acquisition) renders standard operations unusable.
+            token = getattr(self._conn, "apiToken", None)
+            if token and len(str(token).strip()) > 5:
+                return self._conn
+
+        # 2. Reconnection cooldown throttling to avoid flooding logs / endpoints
+        if now - self._last_attempt < self._cooldown:
+            return self._conn
+
+        self._last_attempt = now
+        try:
+            logger.info("🔄 Dynamic Connection Hook: Establishing fresh TigerGraph connection...")
+            conn = _build_tg_connection()
+            if conn:
+                # Verify that it actually resolved an API Token successfully
+                token = getattr(conn, "apiToken", None)
+                if token and len(str(token).strip()) > 5:
+                    logger.info("🎉 [green]Dynamic TigerGraph connection established successfully.[/green]")
+                    self._conn = conn
+                else:
+                    # Still not fully resolved (likely still asleep or wrong credentials)
+                    self._conn = conn
+        except Exception as e:
+            logger.error(f"❌ Dynamic TigerGraph connection attempt failed: {e}")
+        
+        return self._conn
+
+    def __getattr__(self, name):
+        conn = self._ensure_conn()
+        if conn is None:
+            raise RuntimeError("❌ Cannot process request: TigerGraph database is unreachable or credentials invalid.")
+        return getattr(conn, name)
+
+    def __bool__(self):
+        """Determines truthful evaluation for checks like 'if tg_conn:'."""
+        conn = self._ensure_conn()
+        if conn is None:
+            return False
+        # Connection exists; verify it's fully authorized
+        token = getattr(conn, "apiToken", None)
+        return bool(token and len(str(token).strip()) > 5)
+
+
+tg_conn = DynamicTGConnection()
 
 
 def _safe_fetch_document(document_id: str) -> str:
@@ -510,19 +565,14 @@ async def run_graphrag_inference(request: InferenceRequest) -> LLMInferenceRespo
         graph_traversal_latency_ms = (time.perf_counter() - search_start) * 1000.0
 
         final_prompt = (
-            "You are a knowledgeable and highly capable AI assistant answering a query based on a graph database.\n"
-            "Produce a direct, concrete answer first, then include concise evidence bullets from context.\n"
+            "You are a knowledgeable and highly capable AI assistant.\n"
+            "You have access to highly tailored context retrieved from a knowledge graph.\n"
             "CRITICAL INSTRUCTIONS:\n"
             "1. Do NOT use phrases like 'Based on the context', 'According to the text', or 'I don't have the context'.\n"
-            "2. Answer the user's question directly, factually, and confidently.\n"
+            "2. Answer the user's question directly, factually, and confidently in a seamless natural paragraph format.\n"
             "3. If context is partial, answer using your best judgment. Answer seamlessly without disclaimers.\n\n"
             f"CONTEXT:\n{retrieved_context}\n\n"
-            f"QUERY:\n{request.query}\n\n"
-            "Output format:\n"
-            "Direct Answer: <2-6 sentences>\n"
-            "Evidence:\n"
-            "- <bullet 1>\n"
-            "- <bullet 2>\n"
+            f"QUERY:\n{request.query}\n"
         )
 
         from app.pipelines.llm_only import model as llm_model

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
+import { getApiUrl } from '../../utils/apiUrl';
 
 export default function UploadForm() {
   const [isUploading, setIsUploading] = useState(false);
@@ -88,7 +89,7 @@ export default function UploadForm() {
 
       try {
         setStatusMsg(`Uploading ${file.name} (${i + 1}/${files.length})...`);
-        const response = await fetch('/api/ingestion/upload', {
+        const response = await fetch(getApiUrl('/api/ingestion/upload'), {
           method: 'POST',
           body: formData,
         });
@@ -179,7 +180,7 @@ export default function UploadForm() {
     setStatusMsg('Clearing all internal databases...');
 
     try {
-      const response = await fetch('/api/ingestion/clear', {
+      const response = await fetch(getApiUrl('/api/ingestion/clear'), {
         method: 'POST'
       });
 

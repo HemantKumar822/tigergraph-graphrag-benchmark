@@ -14,6 +14,19 @@ logger = logging.getLogger(__name__)
 # Weights automatically cached locally by transformers (~260MB).
 DEFAULT_BERT_MODEL = "distilbert-base-uncased"
 
+def preload_bert_model():
+    """
+    Downloads and caches the BERT model weights into memory.
+    Call this on server startup to prevent 60-second blocking on the first API request!
+    """
+    logger.info(f"Preloading BERTScore model ({DEFAULT_BERT_MODEL}) to prevent first-request freeze...")
+    try:
+        # Dummy computation to force transformers to fetch the model into memory
+        calculate_bertscore("preload", "preload")
+        logger.info("BERTScore model loaded successfully and is ready.")
+    except Exception as e:
+        logger.error(f"Failed to preload BERTScore model: {e}")
+
 def calculate_bertscore(candidate: Optional[str], reference: Optional[str]) -> float:
     """
     Computes BERTScore F1 rescale value between a single candidate and reference pair.

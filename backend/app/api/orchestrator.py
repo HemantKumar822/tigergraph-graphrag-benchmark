@@ -20,6 +20,8 @@ from app.models.schemas import (
 from app.pipelines.llm_only import run_llm_only_inference
 from app.pipelines.basic_rag import run_basic_rag_inference
 from app.pipelines.graphrag import run_graphrag_inference
+import google.generativeai as genai
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -45,9 +47,23 @@ async def benchmark_endpoint(request: InferenceRequest):
     """
     Concurrently executes all three pipelines (llm-only, basic-rag, graphrag)
     using asyncio.gather with return_exceptions=True so that a single pipeline
-    failure does not abort the others.
+    failure does not abort the others. Auto-generates ground truth if missing.
     """
     try:
+        # Auto-generate Ground Truth if missing to make evaluation seamless and automatic
+        if not request.ground_truth or not request.ground_truth.strip():
+            auto_model = genai.GenerativeModel("gemini-3.1-flash-lite")
+            genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
+            try:
+                gen_resp = await auto_model.generate_content_async(
+                    f"Provide a concise, factual, and accurate answer to this question: {request.query}. "
+                    "Make it exactly 1-2 sentences. No conversational filler."
+                )
+                request.ground_truth = gen_resp.text.strip()
+                logger.info(f"Auto-generated ground truth: {request.ground_truth}")
+            except Exception as e:
+                logger.warning(f"Failed to auto-generate ground truth: {e}")
+
         llm_task = run_llm_only_inference(request)
         rag_task = run_basic_rag_inference(request)
         graph_task = run_graphrag_inference(request)

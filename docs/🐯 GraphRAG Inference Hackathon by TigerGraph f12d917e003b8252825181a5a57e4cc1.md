@@ -161,7 +161,7 @@ Three things matter. Everything else is a means to these ends.
 - Strong semantic similarity on BERTScore F1 rescaled (≥ 0.55) or its raw variant (≥ 0.88)
 - Hitting both unlocks the maximum bonus
 
-> Token reduction with poor answers isn't a win. The bonus rewards teams that prove GraphRAG is genuinely better, not just cheaper.
+> Token reduction with poor answers isn't a win. The bonus rewards:  teams that prove GraphRAG is genuinely better, not just cheaper.
 > 
 
 > ⚠️ **Important:** Token reduction only counts if your GraphRAG pipeline maintains or improves accuracy compared to your Basic RAG baseline. A team that cuts tokens by 70% but loses 20% accuracy isn't a winner. It's a regression.

@@ -12,7 +12,7 @@ LLMs are expensive because they're fed too much context. Basic RAG retrieves *si
 
 **Graphs solve this.** TigerGraph performs multi-hop entity traversal and hands the LLM a clean, precise subgraph instead of a context dump.
 
-This platform runs **three pipelines in parallel** against an identical 2M+ token dataset (Highly structured tech Wikipedia documents spanning AI, Datasets, Cloud, and Software Engineering) and lets the numbers speak:
+This platform runs **three pipelines in parallel** against an identical 2-3M+ token dataset (dense AI, RAG, and Graph Neural Network research papers from ArXiv) and lets the numbers speak:
 
 | Pipeline | Strategy | Expected Outcome |
 |---|---|---|
@@ -230,7 +230,7 @@ python backend/scripts/render_graphrag_config.py
 
 1. Start both services (see Quick Start above)
 2. Open `http://localhost:3001`
-3. Enter a complex, multi-hop query against the SEC 10-K dataset
+3. Enter a complex, multi-hop query against the research papers dataset
 4. Watch all 3 pipelines execute in parallel — results populate independently as each completes
 
 ### Pipeline Validation
@@ -312,7 +312,7 @@ The dashboard is built on an **Expo-inspired developer aesthetic** — infrastru
 
 ## 📦 Dataset
 
-**Default:** SEC 10-K annual filings corpus (~2M+ tokens) — public domain financial documents with rich inter-company entity relationships, ideal for multi-hop GraphRAG reasoning.
+**Default:** ArXiv ML/AI Research Papers corpus (~3M+ tokens) — public domain dense scientific documents with rich inter-concept entity relationships, ideal for multi-hop GraphRAG reasoning.
 
 **Custom Dataset:** Use the `/api/ingest` endpoint or the upload UI to replace the default dataset with your own PDFs or text files. The system re-indexes both ChromaDB and TigerGraph automatically.
 

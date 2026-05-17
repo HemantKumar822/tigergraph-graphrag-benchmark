@@ -50,8 +50,22 @@ def readiness_report() -> dict:
 
 
 async def run_live_validation(query: str, top_k: int, num_hops: int) -> dict:
+    import google.generativeai as genai
+    import os
+    genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
+    auto_model = genai.GenerativeModel("gemini-3.1-flash-lite")
+    try:
+        gen_resp = await auto_model.generate_content_async(
+            f"Provide a concise, factual, and accurate answer to this question: {query}. "
+            "Make it exactly 1-2 sentences. No conversational filler."
+        )
+        auto_gt = gen_resp.text.strip()
+    except Exception as e:
+        auto_gt = "Error generating ground truth."
+
     request = InferenceRequest(
         query=query,
+        ground_truth=auto_gt,
         config=InferenceConfig(top_k=top_k, num_hops=num_hops, temperature=0.0, max_tokens=256),
     )
 

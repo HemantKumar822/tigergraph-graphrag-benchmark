@@ -8,18 +8,12 @@ so downstream numerical grading remains stable.
 import re
 import logging
 import os
+import asyncio
+import random
 from typing import Optional
-from huggingface_hub import AsyncInferenceClient
-from app.core.config import settings
+import google.generativeai as genai
 
 logger = logging.getLogger(__name__)
-
-# ---------------------------------------------------------------------------
-# Judge client (uses Hugging Face Inference API as required by hackathon)
-# ---------------------------------------------------------------------------
-hf_client = AsyncInferenceClient(
-    token=os.environ.get("HF_TOKEN")
-)
 
 # ---------------------------------------------------------------------------
 # Task 1: Grading prompt template
@@ -65,45 +59,50 @@ def parse_verdict(raw_response: Optional[str]) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Task 2: Request wrapper
+# Task 2: Request wrapper 
+# Using Gemini to ensure extreme stability instead of HuggingFace rate limits.
 # ---------------------------------------------------------------------------
 async def evaluate_with_llm_judge(
     ground_truth: str,
     student_answer: str,
-    model: str = "meta-llama/Meta-Llama-3-8B-Instruct",
-    temperature: float = 0.1,
+    model: str = "gemini-3.1-flash-lite",
+    temperature: float = 0.0,
 ) -> str:
     """
     Submit a (ground_truth, student_answer) pair to the LLM judge and return
-    a verdict of "PASS", "FAIL", or "N/A".
-
-    Args:
-        ground_truth:   The reference/expected answer.
-        student_answer: The generated answer being graded.
-        model:          Judge model ID. Defaults to meta-llama/Meta-Llama-3-8B-Instruct.
-        temperature:    Sampling temperature. 0.0 for deterministic grading.
-
-    Returns:
-        "PASS" | "FAIL" | "N/A"
+    a verdict of "PASS", "FAIL", or "N/A" using Gemini API for stability.
     """
+    genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
+    judge_model = genai.GenerativeModel(model)
+
     user_message = _JUDGE_USER_TEMPLATE.format(
         ground_truth=ground_truth,
         student_answer=student_answer,
     )
+    
+    # Prepend the system prompt instructions directly into the message for Gemini flash-lite to obey
+    full_prompt = f"{_JUDGE_SYSTEM_PROMPT}\n\n{user_message}"
 
-    try:
-        response = await hf_client.chat_completion(
-            model=model,
-            messages=[
-                {"role": "system", "content": _JUDGE_SYSTEM_PROMPT},
-                {"role": "user", "content": user_message},
-            ],
-            temperature=temperature if temperature > 0 else 0.1,
-            max_tokens=5,  # Strict ceiling — we only need one word
-        )
-        raw = response.choices[0].message.content or ""
-    except Exception as e:
-        logger.error(f"LLM judge API call failed: {e}")
-        return "N/A"
+    max_attempts = 4
+    for attempt in range(max_attempts):
+        try:
+            response = await judge_model.generate_content_async(
+                full_prompt,
+                generation_config={"temperature": temperature}
+            )
+            raw = response.text or ""
+            return parse_verdict(raw)
+        except Exception as e:
+            err_str = str(e)
+            is_429 = "429" in err_str or "Quota" in err_str or "ResourceExhausted" in err_str or "limit" in err_str.lower() or "503" in err_str
+            
+            if is_429 and attempt < max_attempts - 1:
+                sleep_sec = (1.5 * (2 ** attempt)) + (random.uniform(0.5, 1.5))
+                logger.warning(f"⚠️ [Judge Rate Limit (429)] Quota saturated. Retrying in {sleep_sec:.2f}s (Attempt {attempt + 1}/{max_attempts})...")
+                await asyncio.sleep(sleep_sec)
+                continue
+                
+            logger.error(f"LLM judge API call failed after {attempt + 1} attempts: {e}")
+            return "N/A"
 
-    return parse_verdict(raw)
+    return "N/A"

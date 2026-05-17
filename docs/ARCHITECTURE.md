@@ -6,7 +6,7 @@ This application acts as a comparative benchmarking platform to test the hypothe
 
 ### Core Components
 1. **Frontend Benchmark UI (Next.js):** 
-   - Accepts a user query and an (optional) Ground Truth answer.
+   - Accepts a user query and an optional Ground Truth answer (auto-generates one if omitted).
    - Triggers three parallel requests to the backend to minimize synchronous wait times.
    - Renders telemetry data (Tokens In/Out, Latency, Cost, BERTScore, Judge Score) dynamically.
 
@@ -20,7 +20,7 @@ This application acts as a comparative benchmarking platform to test the hypothe
    - **Pipeline 3: GraphRAG (`graphrag.py`)** -> Connects to **TigerGraph Cloud/Local**. Extracts entities, expands query context through multi-hop graph traversal, scores semantic overlap, and filters to highly dense textual evidence. Vastly reduces payload size while keeping factual grounding.
 
 4. **Concurrent Evaluator (`concurrent.py`):**
-   - If Ground Truth is provided, automatically scores the generated candidate answers.
+   - Evaluates the generated candidate answers against the Ground Truth.
    - Runs **BERTScore** (Hugging Face / DistilBERT) for semantic overlap.
    - Runs **LLM-as-a-judge** (Gemini) for a rigorous `PASS/FAIL` fact-check.
 
